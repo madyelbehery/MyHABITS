@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My Notebook</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2b2620">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Reem+Kufi:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f6f1e4; --line:#d8cdae; --ink:#2b2620; --accent:#e75d8a;
+  --accent2:#5b8fd1; --box:#fff; --sub:#8a7f65; --good:#3f8a5b;
+  --paper-dark:#221f1a; --ink-dark:#ece4d2; --box-dark:#2c2822;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:var(--paper-dark); --ink:var(--ink-dark); --line:#463f33;
+    --box:var(--box-dark); --sub:#a99d84;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:var(--paper-dark); --ink:var(--ink-dark); --line:#463f33;
+  --box:var(--box-dark); --sub:#a99d84;
+}
+html,body{height:100%;}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:'Kalam',cursive; overflow-x:hidden;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:26px 26px;
+}
+header{
+  position:sticky; top:0; z-index:5;
+  padding:calc(10px + env(safe-area-inset-top,0px)) 14px 8px;
+  background:var(--paper); border-bottom:2px solid var(--ink);
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+}
+.month-nav{display:flex; align-items:center; gap:6px;}
+.month-nav button{
+  font-family:'Kalam',cursive; font-size:20px; background:none; border:none;
+  color:var(--ink); cursor:pointer; padding:2px 8px;
+}
+h1{font-size:30px; margin:0; letter-spacing:1px; min-width:120px; text-align:center;}
+.pct{font-size:26px; font-weight:700; color:var(--accent);}
+nav.tabs{
+  display:flex; gap:0; padding:8px 14px 0; background:var(--paper);
+  position:sticky; top:var(--headerH,60px); z-index:4;
+}
+.tab{
+  flex:1; text-align:center; padding:8px 4px; font-size:17px; cursor:pointer;
+  border-bottom:3px solid transparent; color:var(--sub);
+}
+.tab.active{color:var(--ink); border-bottom-color:var(--accent); font-weight:700;}
+main{padding:10px 10px 40px;}
+.day-row{
+  display:flex; align-items:flex-start; gap:8px; padding:9px 4px;
+  border-bottom:1px dashed var(--line);
+}
+.day-num{
+  font-size:18px; min-width:26px; color:var(--sub); padding-top:4px; text-align:center;
+}
+.day-row.special{background:rgba(231,93,138,0.14); border-radius:6px;}
+.jtext{
+  flex:1; border:none; background:transparent; resize:none; overflow:hidden;
+  font-family:'Kalam',cursive; font-size:17px; color:var(--ink); padding-top:4px;
+  outline:none; line-height:1.4;
+}
+.star-btn{
+  background:none; border:none; font-size:18px; cursor:pointer; opacity:.5; padding-top:4px;
+}
+.star-btn.on{opacity:1;}
+.habits-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+table.habits{border-collapse:collapse; font-family:'Kalam',cursive; min-width:100%; table-layout:fixed; border-top:1px solid var(--line);}
+table.habits th{
+  writing-mode:vertical-rl; text-orientation:mixed; transform:rotate(180deg);
+  font-size:12px; padding:4px 2px; height:110px; color:var(--ink);
+  border-bottom:2px solid var(--ink); border-right:1px solid var(--line); white-space:nowrap; font-weight:700;
+}
+table.habits th.daycol, table.habits td.daycol{writing-mode:horizontal-tb; transform:none; width:26px;}
+table.habits td{
+  border-bottom:1px solid var(--line); border-right:1px solid var(--line); text-align:center; padding:0; min-width:22px; height:28px;
+}
+.chk{
+  width:18px; height:18px; margin:1px auto; border:1.5px solid var(--sub); border-radius:2px;
+  display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer;
+  color:var(--good); background:var(--box);
+}
+.numin{
+  width:18px; text-align:center; border:1.5px solid var(--sub); border-radius:2px;
+  background:var(--box); color:var(--ink); font-family:'Kalam',cursive; font-size:12px; padding:1px;
+}
+.numin:focus, .chk:focus{outline:2px solid var(--accent2);}
+footer.note{padding:6px 16px 20px; font-size:13px; color:var(--sub); text-align:center;}
+.habits-tab{display:flex; align-items:flex-start;}
+.habits-cols{display:flex; flex-direction:column; flex:1; min-width:0;}
+.habits-head{overflow:hidden; position:sticky; top:var(--stickyTop,100px); z-index:3; background:var(--paper);}
+.mood-chart{flex-shrink:0; width:144px;}
+.mood-chart svg{display:block;}
+</style>
+</head>
+<body>
+<header>
+  <button id="exportBtn" title="Backup" style="background:none;border:none;font-size:18px;cursor:pointer;">⬇️</button>
+  <button id="importBtn" title="Restore" style="background:none;border:none;font-size:18px;cursor:pointer;">⬆️</button>
+  <div class="pct" id="pctBadge">—</div>
+  <div class="month-nav">
+    <button id="prevM" aria-label="الشهر السابق">‹</button>
+    <h1 id="monthLabel">—</h1>
+    <button id="nextM" aria-label="الشهر التالي">›</button>
+  </div>
+</header>
+<nav class="tabs">
+  <div class="tab" data-tab="journal">📖 Journal</div>
+  <div class="tab" data-tab="habits">✅ Habits</div>
+</nav>
+<main id="content"></main>
+<div id="backupModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:20; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:var(--paper); border:2px solid var(--ink); border-radius:8px; padding:16px; width:100%; max-width:340px;">
+    <p id="backupTitle" style="margin:0 0 8px; font-size:17px;"></p>
+    <textarea id="backupText" style="width:100%; height:160px; font-family:monospace; font-size:11px; padding:6px;"></textarea>
+    <div style="display:flex; gap:8px; margin-top:10px;">
+      <button id="backupCopyBtn" style="flex:1; padding:8px; font-family:'Kalam',cursive; font-size:15px;">Copy</button>
+      <button id="backupRestoreBtn" style="flex:1; padding:8px; font-family:'Kalam',cursive; font-size:15px; display:none;">Restore</button>
+      <button id="backupCloseBtn" style="flex:1; padding:8px; font-family:'Kalam',cursive; font-size:15px;">Close</button>
+    </div>
+  </div>
+</div>
+<footer class="note">Autosaves on your device</footer>
+<script>
+const HABITS=[
+ {id:'fajr',name:'WAKE UP FAJR',type:'chk'},
+ {id:'teeth',name:'BRUSH TEETH',type:'chk'},
+ {id:'azkaram',name:'AZKAR AM',type:'chk'},
+ {id:'early',name:'WAKE UP EARLY',type:'chk'},
+ {id:'quran',name:"QUR'AN",type:'num'},
+ {id:'noscreen',name:'NO SCREEN 30 MIN',type:'chk'},
+ {id:'veg',name:'VEGETABLES',type:'chk'},
+ {id:'mep',name:'MEP COURSE',type:'chk'},
+ {id:'english',name:'ENGLISH',type:'chk'},
+ {id:'exercise',name:'EXERCISE',type:'chk'},
+ {id:'reading',name:'READING',type:'num'},
+ {id:'azkarpm',name:'AZKAR PM',type:'chk'},
+ {id:'prayer',name:'PRAYER',type:'chk'},
+ {id:'water',name:'2L WATER',type:'chk'},
+ {id:'steps',name:'10K STEPS',type:'chk'},
+ {id:'screen6',name:"SCREEN TIME < 6H",type:'chk'},
+ {id:'qiyam',name:'QIYAM AL-LAIL',type:'num'},
+];
+const MONTHS=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+const ROWH=28, THEAD_H=110;
+
+let today=new Date();
+let state={year:today.getFullYear(), month:today.getMonth()+1, tab:'journal'};
+
+function key(y,m){return `htd-${y}-${m}`;}
+function load(y,m){
+  try{ const raw=localStorage.getItem(key(y,m)); return raw?JSON.parse(raw):{days:{}}; }
+  catch(e){ return {days:{}}; }
+}
+function save(y,m,data){
+  try{ localStorage.setItem(key(y,m), JSON.stringify(data)); }catch(e){}
+}
+function daysInMonth(y,m){ return new Date(y,m,0).getDate(); }
+function dayDoneCount(dd){
+  if(!dd || !dd.habits) return 0;
+  let c=0;
+  HABITS.forEach(h=>{
+    const v=dd.habits[h.id];
+    if(h.type==='chk'){ if(v) c++; }
+    else { if(v!=null && v!=='' && Number(v)>=1) c++; }
+  });
+  return c;
+}
+
+function habitCountChartSVG(counts){
+  const w=144, xMin=16, xMax=w-10, n=counts.length, GRID_MAX=16;
+  const h=THEAD_H+n*ROWH;
+  const dx=(xMax-xMin)/GRID_MAX;
+  const cellCenter=v=>xMin+v*dx-dx/2; // even v -> center of its square; odd v -> border between neighbours
+  let axisLabels='', gridLines='';
+  for(let c=1;c<=GRID_MAX;c++){
+    gridLines+=`<line x1="${xMin+c*dx}" y1="0" x2="${xMin+c*dx}" y2="${h}" stroke="var(--line)" stroke-width="1"/>`;
+  }
+  for(let v=2; v<=GRID_MAX; v+=2){
+    axisLabels+=`<text x="${cellCenter(v)}" y="16" font-size="9" fill="var(--sub)" text-anchor="middle">${v}</text>`;
+  }
+  let path='', dots='';
+  let started=false;
+  counts.forEach((v,i)=>{
+    const y=THEAD_H+(i+0.5)*ROWH;
+    const x=cellCenter(Math.max(0,Math.min(GRID_MAX,v)));
+    path += (started? 'L':'M') + x + ' ' + y + ' ';
+    started=true;
+    dots += `<circle cx="${x}" cy="${y}" r="3" fill="var(--accent2)"/>`;
+  });
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    ${gridLines}
+    ${axisLabels}
+    <path d="${path}" fill="none" stroke="var(--accent2)" stroke-width="1.5"/>
+    ${dots}
+  </svg>`;
+}
+
+function render(){
+  const {year,month,tab}=state;
+  document.getElementById('monthLabel').textContent = `${MONTHS[month-1]}`;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+  const data=load(year,month);
+  const n=daysInMonth(year,month);
+  const content=document.getElementById('content');
+
+  // completion %
+  let done=0, possible=n*HABITS.length;
+  for(let d=1; d<=n; d++){ done += dayDoneCount(data.days[d]); }
+  document.getElementById('pctBadge').textContent = possible? Math.round(done/possible*100)+'%' : '—';
+
+  if(tab==='journal'){
+    let html='';
+    for(let d=1; d<=n; d++){
+      const dd=data.days[d]||{};
+      html+=`<div class="day-row ${dd.special?'special':''}" data-d="${d}">
+        <div class="day-num">${d}</div>
+        <textarea class="jtext" rows="1" data-d="${d}" placeholder="something that made me happy today...">${dd.journal||''}</textarea>
+        <button class="star-btn ${dd.special?'on':''}" data-d="${d}">★</button>
+      </div>`;
+    }
+    content.innerHTML=html;
+    content.querySelectorAll('.jtext').forEach(el=>{
+      el.style.height='auto'; el.style.height=el.scrollHeight+'px';
+      el.addEventListener('input', ()=>{
+        el.style.height='auto'; el.style.height=el.scrollHeight+'px';
+        const d=el.dataset.d, data=load(year,month);
+        data.days[d]=data.days[d]||{}; data.days[d].journal=el.value;
+        save(year,month,data);
+      });
+    });
+    content.querySelectorAll('.star-btn').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const d=el.dataset.d, data=load(year,month);
+        data.days[d]=data.days[d]||{}; data.days[d].special=!data.days[d].special;
+        save(year,month,data); render();
+      });
+    });
+  } else {
+    const colgroup=`<colgroup><col style="width:24px">`+HABITS.map(()=>'<col style="width:22px">').join('')+`</colgroup>`;
+    let thead=`<tr><th class="daycol">day</th>`+HABITS.map(h=>`<th>${h.name}</th>`).join('')+`</tr>`;
+    let rows='';
+    for(let d=1; d<=n; d++){
+      const dd=data.days[d]||{}; const hv=dd.habits||{};
+      rows+=`<tr><td class="daycol">${d}</td>`+HABITS.map(h=>{
+        if(h.type==='chk'){
+          return `<td><div class="chk" data-d="${d}" data-h="${h.id}">${hv[h.id]?'✕':''}</div></td>`;
+        } else {
+          return `<td><input class="numin" type="number" min="0" data-d="${d}" data-h="${h.id}" value="${hv[h.id]??''}"></td>`;
+        }
+      }).join('')+`</tr>`;
+    }
+    const counts=[]; for(let d=1; d<=n; d++){ counts.push(dayDoneCount(data.days[d])); }
+    content.innerHTML=`<div class="habits-tab">
+      <div class="habits-cols">
+        <div class="habits-head"><table class="habits">${colgroup}<thead>${thead}</thead></table></div>
+        <div class="habits-wrap"><table class="habits">${colgroup}<tbody>${rows}</tbody></table></div>
+      </div>
+      <div class="mood-chart">${habitCountChartSVG(counts)}</div>
+    </div>`;
+    const headWrap=content.querySelector('.habits-head'), bodyWrap=content.querySelector('.habits-wrap');
+    bodyWrap.addEventListener('scroll', ()=>{ headWrap.scrollLeft=bodyWrap.scrollLeft; });
+    content.querySelectorAll('.chk').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const d=el.dataset.d, h=el.dataset.h, data=load(year,month);
+        data.days[d]=data.days[d]||{}; data.days[d].habits=data.days[d].habits||{};
+        data.days[d].habits[h]=!data.days[d].habits[h];
+        save(year,month,data); render();
+      });
+    });
+    content.querySelectorAll('.numin').forEach(el=>{
+      el.addEventListener('input', ()=>{
+        const d=el.dataset.d, h=el.dataset.h, data=load(year,month);
+        data.days[d]=data.days[d]||{}; data.days[d].habits=data.days[d].habits||{};
+        data.days[d].habits[h]=el.value===''? null : Number(el.value);
+        save(year,month,data);
+      });
+    });
+  }
+}
+
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', ()=>{ state.tab=t.dataset.tab; render(); }));
+document.getElementById('prevM').addEventListener('click', ()=>{
+  state.month--; if(state.month<1){state.month=12; state.year--;} render();
+});
+document.getElementById('nextM').addEventListener('click', ()=>{
+  state.month++; if(state.month>12){state.month=1; state.year++;} render();
+});
+// edge-swipe between tabs only (so scrolling the habits table isn't hijacked)
+let touchX=null, edgeSwipe=false;
+const EDGE=24;
+document.getElementById('content').addEventListener('touchstart', e=>{
+  touchX=e.touches[0].clientX;
+  edgeSwipe = touchX < EDGE || (window.innerWidth - touchX) < EDGE;
+});
+document.getElementById('content').addEventListener('touchend', e=>{
+  if(touchX===null || !edgeSwipe) { touchX=null; return; }
+  const dx=e.changedTouches[0].clientX - touchX;
+  if(Math.abs(dx)>60){
+    state.tab = state.tab==='journal' ? 'habits' : 'journal';
+    render();
+  }
+  touchX=null;
+});
+const backupModal=document.getElementById('backupModal'), backupText=document.getElementById('backupText'),
+      backupTitle=document.getElementById('backupTitle'), copyBtn=document.getElementById('backupCopyBtn'),
+      restoreBtn=document.getElementById('backupRestoreBtn'), closeBtn=document.getElementById('backupCloseBtn');
+function closeModal(){ backupModal.style.display='none'; }
+closeBtn.addEventListener('click', closeModal);
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const backup={};
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k && k.startsWith('htd-')) backup[k]=localStorage.getItem(k);
+  }
+  backupTitle.textContent='Tap Copy, then paste it somewhere safe (Notes, WhatsApp to yourself...):';
+  backupText.value=JSON.stringify(backup);
+  backupText.readOnly=true;
+  copyBtn.style.display='block'; restoreBtn.style.display='none';
+  backupModal.style.display='flex';
+});
+copyBtn.addEventListener('click', ()=>{
+  backupText.select();
+  try{ navigator.clipboard.writeText(backupText.value); }catch(e){ document.execCommand('copy'); }
+  copyBtn.textContent='Copied!';
+  setTimeout(()=>{ copyBtn.textContent='Copy'; }, 1500);
+});
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  backupTitle.textContent='Paste your backup text here, then tap Restore:';
+  backupText.value='';
+  backupText.readOnly=false;
+  copyBtn.style.display='none'; restoreBtn.style.display='block';
+  backupModal.style.display='flex';
+});
+restoreBtn.addEventListener('click', ()=>{
+  try{
+    const backup=JSON.parse(backupText.value);
+    Object.keys(backup).forEach(k=>{ if(k.startsWith('htd-')) localStorage.setItem(k, backup[k]); });
+    closeModal(); render();
+  }catch(err){ alert('That text doesn\'t look like a valid backup.'); }
+});
+render();
+function updateStickyOffsets(){
+  const headerH=document.querySelector('header').offsetHeight;
+  const tabsH=document.querySelector('nav.tabs').offsetHeight;
+  document.documentElement.style.setProperty('--headerH', headerH+'px');
+  document.documentElement.style.setProperty('--stickyTop', (headerH+tabsH)+'px');
+}
+updateStickyOffsets();
+window.addEventListener('resize', updateStickyOffsets);
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
